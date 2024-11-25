@@ -38,10 +38,15 @@ function createMoveCommand(player: Player, dx: number, dy: number) : Command | n
 }
 
 function createTurnCommand(grid: Grid) : Command {
-    const data = { before_grid: grid.serialize() }
+    const data = { before_grid: grid.serialize(), after_grid: "" }
     return {
         execute() {
-            grid.randomize();
+            if (!data.after_grid) {
+                grid.randomize();
+                data.after_grid = grid.serialize();
+            } else {
+                grid.deserialize(data.after_grid);
+            }
         },
         undo() {
             grid.deserialize(data.before_grid);

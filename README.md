@@ -1,6 +1,12 @@
 # Devlog Entry - 11/27/2024
 tiny
 
+# Devlog Entry - 11/25/2024
+
+## F1.b - partial
+
+Game now has save functionality that allows players to save and load player position and grid state from localStorage. The Grid now has a serialize function that turns its current state into a string and a deserialize function that allows it to revert to a previously serialized state.
+
 # Devlog Entry - 11/24/2024
 
 Redoing project in Typescript with HTML. Alternate platform is now TypeScript with Three.js. Our intended implementation with Unity proved to be too complex for the move to Godot. Morale has taken a hit but we'll forge onward.
