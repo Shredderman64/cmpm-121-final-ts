@@ -3,9 +3,13 @@ tiny
 
 # Devlog Entry - 11/25/2024
 
-## F1.b - partial
+## F1.b - Partial Save Functionality
 
 Game now has save functionality that allows players to save and load player position and grid state from localStorage. The Grid now has a serialize function that turns its current state into a string and a deserialize function that allows it to revert to a previously serialized state.
+
+## F1.d and F0.b - Turn Commands
+
+Commands are now pushed to command stacks to allow players to undo and redo significant actions. This necessitates that commands store previous state through enclosed data structures. Furthermore, time can now be advanced by using the enter key to randomize cells on the grid. This is wrapped in a command that serializes the grid state to allow for undo and redo functionality. The pattern is managed through the same top-level function as player movement.
 
 # Devlog Entry - 11/24/2024
 
@@ -19,7 +23,7 @@ Grid is now represented as an ArrayBuffer of cells, which satisfies the AoS form
 
 As mentioned in F0.a, each grid cell has a sun and water level specific to it. A randomize function is implemented that assigns new values to each level. Sun levels are assigned values within a certain range as before whereas water is randomly incremented or decremented.
 
-## F1.d - Partial
+## F1.d - Move Commands
 
 Player movement is currently wrapped in a command pattern that allows for separate undo and redo functionality. The command pattern is managed through a top-level function that handles input from the player.
 

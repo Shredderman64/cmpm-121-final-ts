@@ -55,6 +55,8 @@ function createTurnCommand(grid: Grid) : Command {
 }
 
 function handleInput(key: string) {
+    redoStack.splice(0, redoStack.length);
+    
     const inputMap: Record<string, Command> = {
         "ArrowLeft": createMoveCommand(playerCharacter, -1, 0)!,
         "ArrowRight": createMoveCommand(playerCharacter, 1, 0)!,
