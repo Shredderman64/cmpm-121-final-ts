@@ -1,5 +1,5 @@
-import { Grid } from "./models";
-import { Player } from "./models";
+import { Grid } from "./models.ts";
+import { Player } from "./models.ts";
 
 interface Command {
     execute(): void;
