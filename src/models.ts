@@ -8,8 +8,8 @@ export class Grid {
     private readonly cellSize = 16;
 
     private readonly numCells = this.GRID_WIDTH * this.GRID_WIDTH;
-    readonly grid = new ArrayBuffer(this.cellSize * this.numCells);
-    readonly gridView = new DataView(this.grid);
+    private grid = new ArrayBuffer(this.cellSize * this.numCells);
+    private gridView = new DataView(this.grid);
 
     constructor() {
         for (let col = 0; col < this.GRID_WIDTH; col++) {
@@ -61,6 +61,21 @@ export class Grid {
                 this.gridView.setInt32(cellOffset + this.waterOffset, water);
             }
         }
+    }
+
+    serialize() {
+        const gridData = new Uint8Array(this.grid);
+        return btoa(String.fromCharCode(...gridData));
+    }
+
+    deserialize(serializedGrid: string) {
+        const binaryGrid = atob(serializedGrid);
+        const gridData = new Uint8Array(binaryGrid.length);
+        for (let i = 0; i < binaryGrid.length; i++) {
+            gridData[i] = binaryGrid.charCodeAt(i);
+        }
+        this.grid = gridData.buffer;
+        this.gridView = new DataView(gridData.buffer);
     }
 }
 

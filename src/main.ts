@@ -6,7 +6,44 @@ interface Command {
     undo(): void;
 }
 
+interface Save {
+    playerPos: { x: number, y: number };
+    gridState: string;
+    timestamp: string;
+}
+
+localStorage.clear();
+
 const grid = new Grid();
+const playerCharacter = new Player(0, 0, grid.GRID_WIDTH);
+
+function createSave(key: string) {
+    const saveFile: Save = {
+        playerPos: { x: playerCharacter.x, y: playerCharacter.y },
+        gridState: grid.serialize(),
+        timestamp: new Date().toISOString(),
+    };
+
+    const saveData = JSON.stringify(saveFile);
+    localStorage.setItem(key, saveData);
+    console.log(`Game saved under ${key}:`, saveFile);
+}
+
+function loadSave(key: string) {
+    const saveData = localStorage.getItem(key);
+    if (!saveData) {
+        console.error(`No save file found under ${key}`);
+        return;
+    }
+    const saveFile: Save = JSON.parse(saveData);
+
+    playerCharacter.x = saveFile.playerPos.x;
+    playerCharacter.y = saveFile.playerPos.y;
+
+    grid.deserialize(saveFile.gridState);
+    notify("scene-changed");
+    console.log(`Game loaded from save ${key}`);
+}
 
 const undoStack : Command[] = [];
 const redoStack : Command[] = [];
@@ -66,8 +103,6 @@ function notify(name: EventName) {
     canvas.dispatchEvent(new Event(name));
 }
 
-const playerCharacter = new Player(0, 0, grid.GRID_WIDTH);
-
 window.addEventListener("keydown", (e) => {
     handleInput(e.key);
 })
@@ -90,8 +125,8 @@ function drawPlayer(player: Player) {
 
 canvas.addEventListener("scene-changed", () => {
     drawPlayer(playerCharacter);
-    const playerPos = playerCharacter.getPosition();
-    console.log(grid.readCell(playerPos.x, playerPos.y))
+    //const playerPos = playerCharacter.getPosition();
+    //console.log(grid.readCell(playerPos.x, playerPos.y))
 })
 
 const undoButton = document.createElement("button");
@@ -103,5 +138,21 @@ const redoButton = document.createElement("button");
 redoButton.innerHTML = "Redo";
 redoButton.addEventListener("click", Redo)
 document.body.appendChild(redoButton);
+
+const saveButton = document.createElement("button");
+saveButton.innerHTML = "Save";
+saveButton.addEventListener("click", () => {
+    const key = prompt("Enter save name")!;
+    createSave(key);
+})
+document.body.appendChild(saveButton);
+
+const loadButton = document.createElement("button");
+loadButton.innerHTML = "Load";
+loadButton.addEventListener("click", () => {
+    const key = prompt("Enter save name")!;
+    loadSave(key);
+})
+document.body.appendChild(loadButton);
 
 notify("scene-changed");
