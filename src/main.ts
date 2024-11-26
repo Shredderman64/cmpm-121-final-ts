@@ -52,10 +52,6 @@ function createTurnCommand(grid: Grid): Command {
             } else {
                 grid.deserialize(data.after_grid);
             }
-            for (const [key, value] of plants) {
-                value.grow(2, 2);
-                console.log(value.growthStage);
-            }
         },
         undo() {
             grid.deserialize(data.before_grid);
