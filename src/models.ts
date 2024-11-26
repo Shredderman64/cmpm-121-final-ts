@@ -74,7 +74,7 @@ export class Grid {
                 const sun = Math.floor(Math.random() * 10);
                 this.gridView.setInt32(cellOffset + this.sunOffset, sun);
 
-                const waterVars: number[] = [-1, -1, 0, 1, 1];
+                const waterVars: number[] = [-1, 0, 1, 2];
                 const waterDelta = waterVars[Math.floor(Math.random() * waterVars.length)];
                 let water = this.gridView.getInt32(cellOffset + this.waterOffset) + waterDelta;
                 water = Math.min(Math.max(water, 0), 3);

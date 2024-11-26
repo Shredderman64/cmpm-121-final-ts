@@ -233,9 +233,14 @@ function drawPlants() {
     for (const [key, plant] of plants) {
         const basePositionX = tileWidth * plant.x;
         const basePositionY = tileWidth * plant.y;
-        const centerOffset = tileWidth / 2;
-        ctx.font = "24px monospace";
-        ctx.fillText(plant.type, basePositionX + centerOffset, basePositionY + centerOffset);
+        const centerOffset = tileWidth / 4;
+        const fontList = [
+            "24px monospace",
+            "28px monospace",
+            "32px monospace",
+        ]
+        ctx.font = fontList[plant.growthStage];
+        ctx.fillText(plant.type, basePositionX + centerOffset, basePositionY + 2.5*centerOffset);
     }
 }
 
@@ -283,5 +288,5 @@ function createPlantButton(icon: string) {
 }
 
 document.body.appendChild(createPlantButton("🌽"));
-document.body.appendChild(createPlantButton("🫘"));
+document.body.appendChild(createPlantButton("🥔"));
 notify("scene-changed");
