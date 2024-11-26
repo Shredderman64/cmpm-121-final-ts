@@ -52,6 +52,10 @@ function createTurnCommand(grid: Grid): Command {
             } else {
                 grid.deserialize(data.after_grid);
             }
+            for (const [key, value] of plants) {
+                value.grow(2, 2);
+                console.log(value.growthStage);
+            }
         },
         undo() {
             grid.deserialize(data.before_grid);
@@ -60,7 +64,7 @@ function createTurnCommand(grid: Grid): Command {
 }
 
 function createSowCommand(x: number, y: number, type: string): Command {
-    const data = { plant: new Plant(type, { x, y }) }
+    const data = { plant: new Plant(type, x, y) }
     return {
         execute() {
             plants.set(`${x}${y}`, data.plant);
@@ -155,10 +159,11 @@ function loadSave(key: string) {
     playerCharacter.x = saveFile.playerPos.x;
     playerCharacter.y = saveFile.playerPos.y;
     grid.deserialize(saveFile.gridState);
-    
+
     plants.clear();
     saveFile.plantMap.forEach((plant: [string, Plant]) => {
-        plants.set(plant[0], plant[1])
+        const plantCopy = new Plant(plant[1].type, plant[1].x, plant[1].y, plant[1].growthStage);
+        plants.set(plant[0], plantCopy);
     });
 
     notify("scene-changed");
@@ -225,8 +230,8 @@ function drawPlayer(player: Player) {
 
 function drawPlants() {
     for (const [key, plant] of plants) {
-        const basePositionX = tileWidth * plant.position.x;
-        const basePositionY = tileWidth * plant.position.y;
+        const basePositionX = tileWidth * plant.x;
+        const basePositionY = tileWidth * plant.y;
         const centerOffset = tileWidth / 2;
         ctx.font = "24px monospace";
         ctx.fillText(plant.type, basePositionX + centerOffset, basePositionY + centerOffset);

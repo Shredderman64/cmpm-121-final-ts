@@ -1,6 +1,16 @@
 # Devlog Entry - 11/27/2024
 tiny
 
+# Devlog Entry - 11/26/2024
+
+## F1.b and F0.c - Reap and Sow
+
+Game now allows players to sow plants on empty cells and reap plants from sowed cells. Plants are stored in a map with their cell coordinates as the key to allow for simplified access and stringification for save and load functionality. A click handler on the canvas is used to dispatch reap and sow commands based on the cursor's position and the plant status of the corresponding cell within the grid, which both commands update on execution.
+
+## F1.d - Reap and Sow Commands
+
+As stated above, reaping and sowing are now wrapped in a command pattern to allow either action to be undone. A command manager is now implemented to allow for separate input handlers to pass commands.
+
 # Devlog Entry - 11/25/2024
 
 ## F1.b - Partial Save Functionality

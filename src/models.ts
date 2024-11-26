@@ -133,7 +133,8 @@ export class Player {
 export class Plant {
     constructor(
         public type: string,  // Example: "flower", "tree", etc.
-        public position : { x: number, y: number },
+        public x: number,
+        public y: number,
         public growthStage: number = 0,  // Tracks how grown a plant is
         public familyNeighbors: number = 0, // Keeps track of same plants in neighboring cells
         public minSun: number = 0,
