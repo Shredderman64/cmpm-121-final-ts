@@ -3,6 +3,7 @@ interface Cell {
     j: number;
     sun: number;
     water: number;
+    sowed: number;
 }
 
 export class Grid {
@@ -12,7 +13,8 @@ export class Grid {
     private readonly rowOffset = 4;
     private readonly sunOffset = 8;
     private readonly waterOffset = 12;
-    private readonly cellSize = 16;
+    private readonly sowOffset = 16;
+    private readonly cellSize = 20;
 
     private readonly numCells = this.GRID_WIDTH * this.GRID_WIDTH;
     private grid = new ArrayBuffer(this.cellSize * this.numCells);
@@ -41,6 +43,7 @@ export class Grid {
         this.gridView.setInt32(cellOffset + this.rowOffset, j);
         this.gridView.setInt32(cellOffset + this.sunOffset, sun);
         this.gridView.setInt32(cellOffset + this.waterOffset, water);
+        this.gridView.setInt8(cellOffset + this.sowOffset, 0);
     }
 
     readCell(col: number, row: number): Cell {
@@ -50,8 +53,18 @@ export class Grid {
         const j = this.gridView.getInt32(cellOffset + this.rowOffset);
         const sun = this.gridView.getInt32(cellOffset + this.sunOffset);
         const water = this.gridView.getInt32(cellOffset + this.waterOffset);
+        const sowed = this.gridView.getInt32(cellOffset + this.sowOffset);
 
-        return { i, j, sun, water };
+        return { i, j, sun, water, sowed };
+    }
+
+    sowCell(col: number, row: number) {
+        const cellOffset = this.getCellOffset(col, row);
+        const sowBool = this.gridView.getInt32(cellOffset + this.sowOffset);
+        if (sowBool == 0)
+            this.gridView.setInt32(cellOffset + this.sowOffset, 1);
+        else
+            this.gridView.setInt32(cellOffset + this.sowOffset, 0);
     }
 
     randomize() {

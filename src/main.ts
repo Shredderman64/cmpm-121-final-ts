@@ -10,6 +10,7 @@ interface Command {
 interface Save {
     playerPos: { x: number, y: number };
     gridState: string;
+    plantMap: [string, Plant][];
     timestamp: string;
 }
 
@@ -21,7 +22,7 @@ const playerCharacter = new Player(0, 0, grid.GRID_WIDTH, grid.GRID_WIDTH);
 const undoStack: Command[] = [];
 const redoStack: Command[] = [];
 
-const plants: Plant[] = [];
+const plants = new Map<string, Plant>();
 let currentPlantType = "🌽";
 
 function createMoveCommand(player: Player, dx: number, dy: number): Command | null {
@@ -62,10 +63,26 @@ function createSowCommand(x: number, y: number, type: string): Command {
     const data = { plant: new Plant(type, { x, y }) }
     return {
         execute() {
-            plants.push(data.plant);
+            plants.set(`${x}${y}`, data.plant);
+            grid.sowCell(x, y);
         },
         undo() {
-            plants.pop();
+            plants.delete(`${x}${y}`);
+            grid.sowCell(x, y);
+        }
+    }
+}
+
+function createReapCommand(x: number, y: number): Command {
+    const data = { plant: plants.get(`${x}${y}`)! }
+    return {
+        execute() {
+            plants.delete(`${x}${y}`);
+            grid.sowCell(x, y);
+        },
+        undo() {
+            plants.set(`${x}${y}`, data.plant);
+            grid.sowCell(x, y);
         }
     }
 }
@@ -115,6 +132,7 @@ function createSave(key: string) {
     const saveFile: Save = {
         playerPos: { x: playerCharacter.x, y: playerCharacter.y },
         gridState: grid.serialize(),
+        plantMap: Array.from(plants.entries()),
         timestamp: new Date().toISOString(),
     };
 
@@ -137,6 +155,10 @@ function loadSave(key: string) {
     playerCharacter.x = saveFile.playerPos.x;
     playerCharacter.y = saveFile.playerPos.y;
     grid.deserialize(saveFile.gridState);
+    saveFile.plantMap.forEach((plant: [string, Plant]) => {
+        plants.set(plant[0], plant[1])
+    });
+    
     notify("scene-changed");
     console.log(`Game loaded from save ${key}`);
 }
@@ -165,7 +187,10 @@ canvas.addEventListener("click", (e) => {
     const gridY = Math.floor(mouseY / tileWidth);
 
     if (playerCharacter.isAdjacent(gridX, gridY)) {
-        manageCommand(createSowCommand(gridX, gridY, currentPlantType));
+        if (!grid.readCell(gridX, gridY).sowed)
+            manageCommand(createSowCommand(gridX, gridY, currentPlantType));
+        else
+            manageCommand(createReapCommand(gridX, gridY));
     }
 })
 
@@ -197,7 +222,7 @@ function drawPlayer(player: Player) {
 }
 
 function drawPlants() {
-    for (let plant of plants) {
+    for (const [key, plant] of plants) {
         const basePositionX = tileWidth * plant.position.x;
         const basePositionY = tileWidth * plant.position.y;
         const centerOffset = tileWidth / 2;
