@@ -155,10 +155,12 @@ function loadSave(key: string) {
     playerCharacter.x = saveFile.playerPos.x;
     playerCharacter.y = saveFile.playerPos.y;
     grid.deserialize(saveFile.gridState);
+    
+    plants.clear();
     saveFile.plantMap.forEach((plant: [string, Plant]) => {
         plants.set(plant[0], plant[1])
     });
-    
+
     notify("scene-changed");
     console.log(`Game loaded from save ${key}`);
 }
