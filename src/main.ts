@@ -102,6 +102,17 @@ function handleKeyboardInput(key: string) {
     manageCommand(command);
 }
 
+function farmTheLand(x: number, y: number) {
+    redoStack.splice(0, redoStack.length);
+    
+    if (playerCharacter.isAdjacent(x, y)) {
+        if (!grid.readCell(x, y).sowed)
+            manageCommand(createSowCommand(x, y, currentPlantType));
+        else
+            manageCommand(createReapCommand(x, y));
+    }
+}
+
 function manageCommand(command: Command) {
     if (command) {
         undoStack.push(command);
@@ -189,12 +200,7 @@ canvas.addEventListener("click", (e) => {
     const gridX = Math.floor(mouseX / tileWidth);
     const gridY = Math.floor(mouseY / tileWidth);
 
-    if (playerCharacter.isAdjacent(gridX, gridY)) {
-        if (!grid.readCell(gridX, gridY).sowed)
-            manageCommand(createSowCommand(gridX, gridY, currentPlantType));
-        else
-            manageCommand(createReapCommand(gridX, gridY));
-    }
+    farmTheLand(gridX, gridY);
 })
 
 function drawGrid() {
