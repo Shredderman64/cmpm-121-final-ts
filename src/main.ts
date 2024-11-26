@@ -169,8 +169,7 @@ function loadSave(key: string) {
 
     plants.clear();
     saveFile.plantMap.forEach((plant: [string, Plant]) => {
-        const plantCopy = new Plant(plant[1].type, plant[1].x, plant[1].y, plant[1].growthStage);
-        plants.set(plant[0], plantCopy);
+        plants.set(plant[0], Plant.deepCopy(plant[1]));
     });
 
     notify("scene-changed");

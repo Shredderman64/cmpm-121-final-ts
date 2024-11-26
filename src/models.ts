@@ -161,4 +161,9 @@ export class Plant {
         }
         return true; // Meets conditions
     }
+
+    static deepCopy(plant: Plant) {
+        const plantCopy = new Plant(plant.type, plant.x, plant.y, plant.growthStage);
+        return plantCopy;
+    }
 }
