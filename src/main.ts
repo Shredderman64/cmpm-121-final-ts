@@ -15,7 +15,7 @@ interface Save {
 localStorage.clear();
 
 const grid = new Grid();
-const playerCharacter = new Player(0, 0, grid.GRID_WIDTH);
+const playerCharacter = new Player(0, 0, grid.GRID_WIDTH, grid.GRID_WIDTH);
 
 const undoStack: Command[] = [];
 const redoStack: Command[] = [];
@@ -51,6 +51,15 @@ function createTurnCommand(grid: Grid) : Command {
         undo() {
             grid.deserialize(data.before_grid);
         }
+    }
+}
+
+function createSowCommand() : Command {
+    return {
+        execute() {
+            console.log("Hello");
+        },
+        undo() {}
     }
 }
 
@@ -138,15 +147,46 @@ const ctx = canvas.getContext("2d")!;
 const tileWidth = canvas.width / grid.GRID_WIDTH;
 
 function drawPlayer(player: Player) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     const basePositionX = tileWidth * player.x;
     const basePositionY = tileWidth * player.y;
     const centerOffset = tileWidth / 2 - 10;
+
+    ctx.fillStyle = "black";
     ctx.fillRect(basePositionX + centerOffset, basePositionY + centerOffset, 20, 20);
 }
 
+function drawGrid() {
+    ctx.fillStyle = "green";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "black";
+    for (let x = 0; x <= grid.GRID_WIDTH; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * tileWidth, 0);
+        ctx.lineTo(x * tileWidth, canvas.height);
+        ctx.stroke();
+    }
+    for (let y = 0; y <= grid.GRID_WIDTH; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * tileWidth);
+        ctx.lineTo(canvas.width, y * tileWidth);
+        ctx.stroke();
+    }
+}
+
+canvas.addEventListener("click", (e) => {
+    const mouseX = e.offsetX;
+    const mouseY = e.offsetY;
+
+    const gridX = Math.floor(mouseX / tileWidth);
+    const gridY = Math.floor(mouseY / tileWidth);
+
+    if (playerCharacter.isAdjacent(gridX, gridY))
+        console.log("true");
+})
+
 canvas.addEventListener("scene-changed", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
     drawPlayer(playerCharacter);
 })
 

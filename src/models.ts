@@ -1,3 +1,11 @@
+interface Cell {
+    i: number;
+    j: number;
+    sun: number;
+    water: number;
+    type: number;
+}
+
 export class Grid {
     public readonly GRID_WIDTH = 6;
 
@@ -5,7 +13,8 @@ export class Grid {
     private readonly rowOffset = 4;
     private readonly sunOffset = 8;
     private readonly waterOffset = 12;
-    private readonly cellSize = 16;
+    private readonly typeOffset = 16;
+    private readonly cellSize = 20;
 
     private readonly numCells = this.GRID_WIDTH * this.GRID_WIDTH;
     private grid = new ArrayBuffer(this.cellSize * this.numCells);
@@ -16,7 +25,7 @@ export class Grid {
             for (let row = 0; row < this.GRID_WIDTH; row++) {
                 const sun = Math.floor(Math.random() * 10);
                 const water = Math.floor(Math.random() * 3);
-                this.writeCell(col, row, sun, water);
+                this.initCell(col, row, sun, water);
             }
         }
     }
@@ -27,24 +36,26 @@ export class Grid {
         return cellOffset;
     }
 
-    writeCell(i: number, j: number, sun: number, water: number) {
+    initCell(i: number, j: number, sun: number, water: number) {
         const cellOffset = this.getCellOffset(i, j);
 
         this.gridView.setInt32(cellOffset + this.colOffset, i);
         this.gridView.setInt32(cellOffset + this.rowOffset, j);
         this.gridView.setInt32(cellOffset + this.sunOffset, sun);
         this.gridView.setInt32(cellOffset + this.waterOffset, water);
+        this.gridView.setInt32(cellOffset + this.typeOffset, 0);
     }
 
-    readCell(col: number, row: number) {
+    readCell(col: number, row: number): Cell {
         const cellOffset = this.getCellOffset(col, row);
 
         const i = this.gridView.getInt32(cellOffset + this.colOffset);
         const j = this.gridView.getInt32(cellOffset + this.rowOffset);
         const sun = this.gridView.getInt32(cellOffset + this.sunOffset);
         const water = this.gridView.getInt32(cellOffset + this.waterOffset);
+        const type = this.gridView.getInt32(cellOffset + this.typeOffset);
 
-        return { i, j, sun, water };
+        return { i, j, sun, water, type };
     }
 
     randomize() {
@@ -54,7 +65,7 @@ export class Grid {
                 const sun = Math.floor(Math.random() * 10);
                 this.gridView.setInt32(cellOffset + this.sunOffset, sun);
 
-                const waterVars : number[] = [-1, -1, 0, 1, 1];
+                const waterVars: number[] = [-1, -1, 0, 1, 1];
                 const waterDelta = waterVars[Math.floor(Math.random() * waterVars.length)];
                 let water = this.gridView.getInt32(cellOffset + this.waterOffset) + waterDelta;
                 water = Math.min(Math.max(water, 0), 3);
@@ -80,7 +91,7 @@ export class Grid {
 }
 
 export class Player {
-    constructor(public x: number, public y: number, private upperBound: number) {}
+    constructor(public x: number, public y: number, private xMax: number, private yMax: number) { }
 
     move(dx: number, dy: number) {
         this.x += dx;
@@ -90,14 +101,53 @@ export class Player {
     boundsCheck(dx: number, dy: number) {
         const x = this.x + dx;
         const y = this.y + dy;
-        if (x < 0 || this.upperBound <= x)
+        if (x < 0 || this.xMax <= x)
             return false;
-        if (y < 0 || this.upperBound <= y)
+        if (y < 0 || this.yMax <= y)
             return false;
         return true;
     }
 
+    isAdjacent(gridX: number, gridY: number) {
+        const adjColumn = this.x - 1 <= gridX && gridX <= this.x + 1;
+        const adjRow = this.y - 1 <= gridY && gridY <= this.y + 1;
+
+        if (adjColumn && adjRow)
+            return true;
+    }
+    
     getPosition() {
         return { x: this.x, y: this.y };
+    }
+}
+
+export class Plant {
+    constructor(
+        public type: string,  // Example: "flower", "tree", etc.
+        public growthStage: number = 0,  // Tracks how grown a plant is
+        public familyNeighbors: number = 0, // Keeps track of same plants in neighboring cells
+        public minSun: number = 0,
+        public minWater: number = 0,
+    ) { }
+
+    grow(sun: number, water: number) {
+        // Logic for plant growth
+        const canGrow = this.checkSunAndWater(sun, water);
+        if (canGrow) {
+            this.growthStage++;
+        }
+    }
+
+    checkSunAndWater(sun: number, water: number): boolean {
+        // Check if the passed values meet minimum conditions
+        if (sun < this.minSun) {
+            // needs more sun
+            return false;
+        }
+        if (water < this.minWater) {
+            // needs more water
+            return false;
+        }
+        return true; // Meets conditions
     }
 }
