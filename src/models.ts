@@ -3,7 +3,6 @@ interface Cell {
     j: number;
     sun: number;
     water: number;
-    type: number;
 }
 
 export class Grid {
@@ -13,8 +12,7 @@ export class Grid {
     private readonly rowOffset = 4;
     private readonly sunOffset = 8;
     private readonly waterOffset = 12;
-    private readonly typeOffset = 16;
-    private readonly cellSize = 20;
+    private readonly cellSize = 16;
 
     private readonly numCells = this.GRID_WIDTH * this.GRID_WIDTH;
     private grid = new ArrayBuffer(this.cellSize * this.numCells);
@@ -43,7 +41,6 @@ export class Grid {
         this.gridView.setInt32(cellOffset + this.rowOffset, j);
         this.gridView.setInt32(cellOffset + this.sunOffset, sun);
         this.gridView.setInt32(cellOffset + this.waterOffset, water);
-        this.gridView.setInt32(cellOffset + this.typeOffset, 0);
     }
 
     readCell(col: number, row: number): Cell {
@@ -53,9 +50,8 @@ export class Grid {
         const j = this.gridView.getInt32(cellOffset + this.rowOffset);
         const sun = this.gridView.getInt32(cellOffset + this.sunOffset);
         const water = this.gridView.getInt32(cellOffset + this.waterOffset);
-        const type = this.gridView.getInt32(cellOffset + this.typeOffset);
 
-        return { i, j, sun, water, type };
+        return { i, j, sun, water };
     }
 
     randomize() {
@@ -115,7 +111,7 @@ export class Player {
         if (adjColumn && adjRow)
             return true;
     }
-    
+
     getPosition() {
         return { x: this.x, y: this.y };
     }
@@ -124,6 +120,7 @@ export class Player {
 export class Plant {
     constructor(
         public type: string,  // Example: "flower", "tree", etc.
+        public position : { x: number, y: number },
         public growthStage: number = 0,  // Tracks how grown a plant is
         public familyNeighbors: number = 0, // Keeps track of same plants in neighboring cells
         public minSun: number = 0,

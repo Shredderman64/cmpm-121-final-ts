@@ -1,5 +1,6 @@
 import { Grid } from "./models.ts";
 import { Player } from "./models.ts";
+import { Plant } from "./models.ts";
 
 interface Command {
     execute(): void;
@@ -20,7 +21,10 @@ const playerCharacter = new Player(0, 0, grid.GRID_WIDTH, grid.GRID_WIDTH);
 const undoStack: Command[] = [];
 const redoStack: Command[] = [];
 
-function createMoveCommand(player: Player, dx: number, dy: number) : Command | null {
+const plants: Plant[] = [];
+let currentPlantType = "🌽";
+
+function createMoveCommand(player: Player, dx: number, dy: number): Command | null {
     const data = { before_dx: 0, before_dy: 0 };
     if (player.boundsCheck(dx, dy)) {
         return {
@@ -37,7 +41,7 @@ function createMoveCommand(player: Player, dx: number, dy: number) : Command | n
     return null;
 }
 
-function createTurnCommand(grid: Grid) : Command {
+function createTurnCommand(grid: Grid): Command {
     const data = { before_grid: grid.serialize(), after_grid: "" }
     return {
         execute() {
@@ -54,18 +58,21 @@ function createTurnCommand(grid: Grid) : Command {
     }
 }
 
-function createSowCommand() : Command {
+function createSowCommand(x: number, y: number, type: string): Command {
+    const data = { plant: new Plant(type, { x, y }) }
     return {
         execute() {
-            console.log("Hello");
+            plants.push(data.plant);
         },
-        undo() {}
+        undo() {
+            plants.pop();
+        }
     }
 }
 
-function handleInput(key: string) {
+function handleKeyboardInput(key: string) {
     redoStack.splice(0, redoStack.length);
-    
+
     const inputMap: Record<string, Command> = {
         "ArrowLeft": createMoveCommand(playerCharacter, -1, 0)!,
         "ArrowRight": createMoveCommand(playerCharacter, 1, 0)!,
@@ -75,6 +82,10 @@ function handleInput(key: string) {
     };
 
     const command = inputMap[key];
+    manageCommand(command);
+}
+
+function manageCommand(command: Command) {
     if (command) {
         undoStack.push(command);
         command.execute();
@@ -136,7 +147,7 @@ function notify(name: EventName) {
 }
 
 window.addEventListener("keydown", (e) => {
-    handleInput(e.key);
+    handleKeyboardInput(e.key);
 })
 
 const canvas = document.createElement("canvas");
@@ -146,14 +157,17 @@ document.body.appendChild(canvas);
 const ctx = canvas.getContext("2d")!;
 const tileWidth = canvas.width / grid.GRID_WIDTH;
 
-function drawPlayer(player: Player) {
-    const basePositionX = tileWidth * player.x;
-    const basePositionY = tileWidth * player.y;
-    const centerOffset = tileWidth / 2 - 10;
+canvas.addEventListener("click", (e) => {
+    const mouseX = e.offsetX;
+    const mouseY = e.offsetY;
 
-    ctx.fillStyle = "black";
-    ctx.fillRect(basePositionX + centerOffset, basePositionY + centerOffset, 20, 20);
-}
+    const gridX = Math.floor(mouseX / tileWidth);
+    const gridY = Math.floor(mouseY / tileWidth);
+
+    if (playerCharacter.isAdjacent(gridX, gridY)) {
+        manageCommand(createSowCommand(gridX, gridY, currentPlantType));
+    }
+})
 
 function drawGrid() {
     ctx.fillStyle = "green";
@@ -173,21 +187,30 @@ function drawGrid() {
     }
 }
 
-canvas.addEventListener("click", (e) => {
-    const mouseX = e.offsetX;
-    const mouseY = e.offsetY;
+function drawPlayer(player: Player) {
+    const basePositionX = tileWidth * player.x;
+    const basePositionY = tileWidth * player.y;
+    const centerOffset = tileWidth / 2 - 10;
 
-    const gridX = Math.floor(mouseX / tileWidth);
-    const gridY = Math.floor(mouseY / tileWidth);
+    ctx.fillStyle = "black";
+    ctx.fillRect(basePositionX + centerOffset, basePositionY + centerOffset, 20, 20);
+}
 
-    if (playerCharacter.isAdjacent(gridX, gridY))
-        console.log("true");
-})
+function drawPlants() {
+    for (let plant of plants) {
+        const basePositionX = tileWidth * plant.position.x;
+        const basePositionY = tileWidth * plant.position.y;
+        const centerOffset = tileWidth / 2;
+        ctx.font = "24px monospace";
+        ctx.fillText(plant.type, basePositionX + centerOffset, basePositionY + centerOffset);
+    }
+}
 
 canvas.addEventListener("scene-changed", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
     drawPlayer(playerCharacter);
+    drawPlants();
 })
 
 const undoButton = document.createElement("button");
@@ -216,4 +239,16 @@ loadButton.addEventListener("click", () => {
 })
 document.body.appendChild(loadButton);
 
+function createPlantButton(icon: string) {
+    const plantButton = document.createElement("button");
+    plantButton.innerHTML = `${icon}`;
+    plantButton.addEventListener("click", () => {
+        currentPlantType = icon;
+        console.log(currentPlantType);
+    })
+    return plantButton;
+}
+
+document.body.appendChild(createPlantButton("🌽"));
+document.body.appendChild(createPlantButton("🫘"));
 notify("scene-changed");
