@@ -7,6 +7,10 @@ tiny
 
 Game now allows players to sow plants on empty cells and reap plants from sowed cells. Plants are stored in a map with their cell coordinates as the key to allow for simplified access and stringification for save and load functionality. A click handler on the canvas is used to dispatch reap and sow commands based on the cursor's position and the plant status of the corresponding cell within the grid, which both commands update on execution.
 
+## F0.e and F0.f
+
+Plants have two subclasses corresponding to two different kinds of crop. Using the subclass sandbox pattern, these subclasses inherit methods from the base class that check for various growth conditions. The base class also has a grow method that can be overridden to allow for different growing conditions for each distinct crop. To represent their growth, plants keep track of their current stage which gets updated when the right conditions are met.
+
 ## F1.d - Reap and Sow Commands
 
 As stated above, reaping and sowing are now wrapped in a command pattern to allow either action to be undone. A command manager is now implemented to allow for separate input handlers to pass commands.

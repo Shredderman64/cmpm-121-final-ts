@@ -150,15 +150,9 @@ export class Plant {
         public growthStage: number = 0,  // Tracks how grown a plant is
         public minSun: number = 1,
         public minWater: number = 1,
-    ) { }
+    ) {}
 
-    grow(sun: number, water: number, plantMap: Map<string, Plant>) {
-        // Logic for plant growth
-        const canGrow = this.checkSunAndWater(sun, water);
-        if (canGrow) {
-            this.growthStage++;
-        }
-    }
+    grow(sun: number, water: number, plantMap: Map<string, Plant>) {}
 
     protected checkSunAndWater(sun: number, water: number): boolean {
         // Check if the passed values meet minimum conditions
@@ -188,7 +182,6 @@ export class Plant {
                 }
             }
         }
-        //console.log(this.type + " plant at (" + x + ", " + y + ") has " + this.familyNeighbors + "neighbors of its kind.");
     }
 
     static switchPlant(type: string, x: number, y: number, growthStage: number) {
@@ -217,15 +210,10 @@ export class BeanPlant extends Plant {
     // grow method: Beans grow faster with neighbors
     override grow(sun: number, water: number, plantMap: Map<string, Plant>) {
         this.checkNeighborsForBoost(this.x, this.y, plantMap); // this.familyNeighbors is ready to use
-        const canGrow = this.checkSunAndWater(sun, water);
-        if (canGrow && this.familyNeighbors >= 2){ // grows one more time if it has at least 2 family plants around it
+        const canGrow = this.checkSunAndWater(sun, water) && this.growthStage < 3;
+        if (canGrow && this.familyNeighbors >= 2){
             this.growthStage++;
         }
-    }
-    
-    static override deepCopy(plant: Plant): BeanPlant {
-        const plantCopy = new BeanPlant(plant.x, plant.y, plant.growthStage)
-        return plantCopy;
     }
 }
 
@@ -240,7 +228,7 @@ export class CornPlant extends Plant {
 
     override grow(sun: number, water: number) {
         // Logic for plant growth
-        const canGrow = this.checkSunAndWater(sun, water);
+        const canGrow = this.checkSunAndWater(sun, water) && this.growthStage < 3;
         if (canGrow) {
             this.growthStage++;
         }

@@ -252,6 +252,7 @@ function drawPlants() {
             "24px monospace",
             "28px monospace",
             "32px monospace",
+            "36px monospace"
         ]
         ctx.font = fontList[plant.growthStage];
         ctx.fillText(plant.type, basePositionX + centerOffset, basePositionY + 2.5 * centerOffset);
