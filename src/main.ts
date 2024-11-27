@@ -1,6 +1,6 @@
 import { Grid } from "./models.ts";
 import { Player } from "./models.ts";
-import { Plant } from "./models.ts";
+import { Plant, CornPlant, BeanPlant } from "./models.ts";
 
 interface Command {
     execute(): void;
@@ -45,28 +45,35 @@ function createMoveCommand(player: Player, dx: number, dy: number): Command | nu
 }
 
 function createTurnCommand(grid: Grid): Command {
-    const data = { before_grid: grid.serialize(), after_grid: "" }
+    const data = {
+        before_grid: grid.serialize(),
+        after_grid: "",
+        growthMap: new Map<string, number>()
+    }
     return {
         execute() {
             if (!data.after_grid) {
                 grid.randomize();
-                for (const [key, plant] of plants){
-                    plant.grow(grid.getSunAt(plant.x, plant.y) , grid.getWaterAt(plant.x, plant.y) , plants);
-                    console.log("Plant at (" + plant.x + ", " + plant.y + ")'s growth stage is " + plant.growthStage);
-                }
                 data.after_grid = grid.serialize();
             } else {
                 grid.deserialize(data.after_grid);
             }
+            for (const [key, plant] of plants) {
+                data.growthMap.set(key, plant.growthStage);
+                plant.grow(grid.getSunAt(plant.x, plant.y), grid.getWaterAt(plant.x, plant.y), plants);
+            }
         },
         undo() {
             grid.deserialize(data.before_grid);
+            for (const [key, plant] of plants) {
+                plant.growthStage = data.growthMap.get(key)!;
+            }
         }
     }
 }
 
-function createSowCommand(x: number, y: number, type: string): Command {
-    const data = { plant: new Plant(type, x, y) }
+function createSowCommand(x: number, y: number): Command {
+    const data = { plant: Plant.switchPlant(currentPlantType, x, y, 0) }
     return {
         execute() {
             plants.set(`${x}${y}`, data.plant);
@@ -110,10 +117,10 @@ function handleKeyboardInput(key: string) {
 
 function farmTheLand(x: number, y: number) {
     redoStack.splice(0, redoStack.length);
-    
+
     if (playerCharacter.isAdjacent(x, y)) {
         if (!grid.readCell(x, y).sowed)
-            manageCommand(createSowCommand(x, y, currentPlantType));
+            manageCommand(createSowCommand(x, y));
         else
             manageCommand(createReapCommand(x, y));
     }
@@ -247,7 +254,7 @@ function drawPlants() {
             "32px monospace",
         ]
         ctx.font = fontList[plant.growthStage];
-        ctx.fillText(plant.type, basePositionX + centerOffset, basePositionY + 2.5*centerOffset);
+        ctx.fillText(plant.type, basePositionX + centerOffset, basePositionY + 2.5 * centerOffset);
     }
 }
 
@@ -295,5 +302,5 @@ function createPlantButton(icon: string) {
 }
 
 document.body.appendChild(createPlantButton("🌽"));
-document.body.appendChild(createPlantButton("🥔"));
+document.body.appendChild(createPlantButton("🫘"));
 notify("scene-changed");

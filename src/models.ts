@@ -141,12 +141,13 @@ export class Player {
 }
 
 export class Plant {
+    protected familyNeighbors: number = 0; // Keeps track of same plants in neighboring cells
+
     constructor(
         public type: string,  // Example: "flower", "tree", etc.
         public x: number,
         public y: number,
         public growthStage: number = 0,  // Tracks how grown a plant is
-        public familyNeighbors: number = 0, // Keeps track of same plants in neighboring cells
         public minSun: number = 1,
         public minWater: number = 1,
     ) { }
@@ -159,7 +160,7 @@ export class Plant {
         }
     }
 
-    checkSunAndWater(sun: number, water: number): boolean {
+    protected checkSunAndWater(sun: number, water: number): boolean {
         // Check if the passed values meet minimum conditions
         if (sun < this.minSun) {
             // needs more sun
@@ -172,8 +173,34 @@ export class Plant {
         return true; // Meets conditions
     }
 
+    protected checkNeighborsForBoost(x: number, y: number, plantMap: Map<string, Plant>) {
+        this.familyNeighbors = 0;
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                if (dx === 0 && dy === 0) continue; // Skip self
+                const neighborX = x + dx;
+                const neighborY = y + dy;
+
+                const neighborKey = neighborX.toString() + neighborY.toString();
+                const neighborPlant = plantMap.get(neighborKey);
+                if (neighborPlant && (neighborPlant.type === this.type)) {
+                    this.familyNeighbors++;
+                }
+            }
+        }
+        //console.log(this.type + " plant at (" + x + ", " + y + ") has " + this.familyNeighbors + "neighbors of its kind.");
+    }
+
+    static switchPlant(type: string, x: number, y: number, growthStage: number) {
+        switch(type) {
+            case "🫘": return new BeanPlant(x, y, growthStage);
+            case "🌽": return new CornPlant(x, y, growthStage);
+            default: throw new Error("Plant unrecognized");
+        }
+    }
+
     static deepCopy(plant: Plant) {
-        const plantCopy = new Plant(plant.type, plant.x, plant.y, plant.growthStage);
+        const plantCopy = this.switchPlant(plant.type, plant.x, plant.y, plant.growthStage);
         return plantCopy;
     }
 }
@@ -183,45 +210,22 @@ export class BeanPlant extends Plant {
         x: number,
         y: number,
         growthStage: number = 0,
-        familyNeighbors: number = 0,
-        //minSun: number = 0,
-        //minWater: number = 0,
     ) {
-        super("bean", x, y, growthStage, familyNeighbors, 3, 2); // Beans need minimum 3 sun, 2 water
+        super("🫘", x, y, growthStage, 3, 2); // Beans need minimum 3 sun, 2 water
     }
 
     // grow method: Beans grow faster with neighbors
     override grow(sun: number, water: number, plantMap: Map<string, Plant>) {
         this.checkNeighborsForBoost(this.x, this.y, plantMap); // this.familyNeighbors is ready to use
         const canGrow = this.checkSunAndWater(sun, water);
-        if (canGrow) {
-            this.growthStage ++;
-            if (this.familyNeighbors >= 2){ // grows one more time if it has at least 2 family plants around it
-                this.growthStage++;
-            }
+        if (canGrow && this.familyNeighbors >= 2){ // grows one more time if it has at least 2 family plants around it
+            this.growthStage++;
         }
     }
-
-
-    private checkNeighborsForBoost(x: number, y: number, plantMap: Map<string, Plant>) {
-        this.familyNeighbors = 0;
-        let neighborKey = "";
-        let neighborPlant;
-        for (let dx = -1; dx <= 1; dx++) {
-            for (let dy = -1; dy <= 1; dy++) {
-                if (dx === 0 && dy === 0) continue; // Skip self
-                const neighborX = x + dx;
-                const neighborY = y + dy;
-
-                neighborKey = neighborX.toString() + neighborY.toString();
-                neighborPlant = plantMap.get(neighborKey);
-                if (neighborPlant && (neighborPlant.type === this.type)) {
-                    this.familyNeighbors++;
-                }
-
-            }
-        }
-        console.log(this.type + " plant at (" + x + ", " + y + ") has " + this.familyNeighbors + "neighbors of its kind.");
+    
+    static override deepCopy(plant: Plant): BeanPlant {
+        const plantCopy = new BeanPlant(plant.x, plant.y, plant.growthStage)
+        return plantCopy;
     }
 }
 
@@ -230,11 +234,8 @@ export class CornPlant extends Plant {
         x: number,
         y: number,
         growthStage: number = 0,
-        familyNeighbors: number = 0,
-        minSun: number = 1,
-        minWater: number = 2
     ) {
-        super("tree", x, y, growthStage, familyNeighbors, minSun, minWater);
+        super("🌽", x, y, growthStage, 1, 2);
     }
 
     override grow(sun: number, water: number) {
