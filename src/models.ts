@@ -55,7 +55,17 @@ export class Grid {
         const water = this.gridView.getInt32(cellOffset + this.waterOffset);
         const sowed = this.gridView.getInt32(cellOffset + this.sowOffset);
 
-        return { i, j, sun, water, sowed };
+        return { i, j, sun, water, sowed};
+    }
+
+    getSunAt(col: number, row: number) {
+        const cellOffset = this.getCellOffset(col, row);
+        return this.gridView.getInt32(cellOffset + this.sunOffset);
+    }
+
+    getWaterAt(col: number, row: number) {
+        const cellOffset = this.getCellOffset(col, row);
+        return this.gridView.getInt32(cellOffset + this.waterOffset);
     }
 
     sowCell(col: number, row: number) {
@@ -137,11 +147,11 @@ export class Plant {
         public y: number,
         public growthStage: number = 0,  // Tracks how grown a plant is
         public familyNeighbors: number = 0, // Keeps track of same plants in neighboring cells
-        public minSun: number = 0,
-        public minWater: number = 0,
+        public minSun: number = 1,
+        public minWater: number = 1,
     ) { }
 
-    grow(sun: number, water: number) {
+    grow(sun: number, water: number, plantMap: Map<string, Plant>) {
         // Logic for plant growth
         const canGrow = this.checkSunAndWater(sun, water);
         if (canGrow) {
@@ -165,5 +175,73 @@ export class Plant {
     static deepCopy(plant: Plant) {
         const plantCopy = new Plant(plant.type, plant.x, plant.y, plant.growthStage);
         return plantCopy;
+    }
+}
+
+export class BeanPlant extends Plant {
+    constructor(
+        x: number,
+        y: number,
+        growthStage: number = 0,
+        familyNeighbors: number = 0,
+        //minSun: number = 0,
+        //minWater: number = 0,
+    ) {
+        super("bean", x, y, growthStage, familyNeighbors, 3, 2); // Beans need minimum 3 sun, 2 water
+    }
+
+    // grow method: Beans grow faster with neighbors
+    override grow(sun: number, water: number, plantMap: Map<string, Plant>) {
+        this.checkNeighborsForBoost(this.x, this.y, plantMap); // this.familyNeighbors is ready to use
+        const canGrow = this.checkSunAndWater(sun, water);
+        if (canGrow) {
+            this.growthStage ++;
+            if (this.familyNeighbors >= 2){ // grows one more time if it has at least 2 family plants around it
+                this.growthStage++;
+            }
+        }
+    }
+
+
+    private checkNeighborsForBoost(x: number, y: number, plantMap: Map<string, Plant>) {
+        this.familyNeighbors = 0;
+        let neighborKey = "";
+        let neighborPlant;
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                if (dx === 0 && dy === 0) continue; // Skip self
+                const neighborX = x + dx;
+                const neighborY = y + dy;
+
+                neighborKey = neighborX.toString() + neighborY.toString();
+                neighborPlant = plantMap.get(neighborKey);
+                if (neighborPlant && (neighborPlant.type === this.type)) {
+                    this.familyNeighbors++;
+                }
+
+            }
+        }
+        console.log(this.type + " plant at (" + x + ", " + y + ") has " + this.familyNeighbors + "neighbors of its kind.");
+    }
+}
+
+export class CornPlant extends Plant {
+    constructor(
+        x: number,
+        y: number,
+        growthStage: number = 0,
+        familyNeighbors: number = 0,
+        minSun: number = 1,
+        minWater: number = 2
+    ) {
+        super("tree", x, y, growthStage, familyNeighbors, minSun, minWater);
+    }
+
+    override grow(sun: number, water: number) {
+        // Logic for plant growth
+        const canGrow = this.checkSunAndWater(sun, water);
+        if (canGrow) {
+            this.growthStage++;
+        }
     }
 }

@@ -11,6 +11,7 @@ interface Save {
     playerPos: { x: number, y: number };
     gridState: string;
     plantMap: [string, Plant][];
+    inGameTime: number;
     timestamp: string;
 }
 
@@ -24,6 +25,7 @@ const redoStack: Command[] = [];
 
 const plants = new Map<string, Plant>();
 let currentPlantType = "🌽";
+let currentDay = 0;
 
 function createMoveCommand(player: Player, dx: number, dy: number): Command | null {
     const data = { before_dx: 0, before_dy: 0 };
@@ -48,6 +50,10 @@ function createTurnCommand(grid: Grid): Command {
         execute() {
             if (!data.after_grid) {
                 grid.randomize();
+                for (const [key, plant] of plants){
+                    plant.grow(grid.getSunAt(plant.x, plant.y) , grid.getWaterAt(plant.x, plant.y) , plants);
+                    console.log("Plant at (" + plant.x + ", " + plant.y + ")'s growth stage is " + plant.growthStage);
+                }
                 data.after_grid = grid.serialize();
             } else {
                 grid.deserialize(data.after_grid);
@@ -144,6 +150,7 @@ function createSave(key: string) {
         playerPos: { x: playerCharacter.x, y: playerCharacter.y },
         gridState: grid.serialize(),
         plantMap: Array.from(plants.entries()),
+        inGameTime: currentDay,
         timestamp: new Date().toISOString(),
     };
 
