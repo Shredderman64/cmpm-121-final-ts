@@ -11,6 +11,10 @@ Game now allows players to sow plants on empty cells and reap plants from sowed 
 
 Plants have two subclasses corresponding to two different kinds of crop. Using the subclass sandbox pattern, these subclasses inherit methods from the base class that check for various growth conditions. The base class also has a grow method that can be overridden to allow for different growing conditions for each distinct crop. To represent their growth, plants keep track of their current stage which gets updated when the right conditions are met.
 
+## F1.c
+
+Game now has implicit autosave. This is achieved by writing to an "autosave" slot every time the scene is changed. When opening a new session, players are prompted if they want to continue where they left off, loading the most recent autosave if they accept.
+
 ## F1.d - Reap and Sow Commands
 
 As stated above, reaping and sowing are now wrapped in a command pattern to allow either action to be undone. A command manager is now implemented to allow for separate input handlers to pass commands.

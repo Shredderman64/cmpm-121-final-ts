@@ -15,8 +15,6 @@ interface Save {
     timestamp: string;
 }
 
-localStorage.clear();
-
 const grid = new Grid();
 const playerCharacter = new Player(0, 0, grid.GRID_WIDTH, grid.GRID_WIDTH);
 
@@ -163,7 +161,26 @@ function createSave(key: string) {
 
     const saveData = JSON.stringify(saveFile);
     localStorage.setItem(key, saveData);
-    console.log(`Game saved under ${key}:`, saveFile);
+    if (key != "autosave")
+        console.log(`Game saved under ${key}`);
+}
+
+function copyDataFromFile(saveFile: Save) {
+    playerCharacter.x = saveFile.playerPos.x;
+    playerCharacter.y = saveFile.playerPos.y;
+    grid.deserialize(saveFile.gridState);
+
+    plants.clear();
+    saveFile.plantMap.forEach((plant: [string, Plant]) => {
+        plants.set(plant[0], Plant.deepCopy(plant[1]));
+    });
+}
+
+function listSaves() {
+    console.log("Saves found:");
+    for (let i = 0, len = localStorage.length; i < len; i++) {
+        console.log(localStorage.key(i)!);
+    }
 }
 
 function loadSave(key: string) {
@@ -177,17 +194,19 @@ function loadSave(key: string) {
     undoStack.splice(0, undoStack.length);
     redoStack.splice(0, redoStack.length);
 
-    playerCharacter.x = saveFile.playerPos.x;
-    playerCharacter.y = saveFile.playerPos.y;
-    grid.deserialize(saveFile.gridState);
-
-    plants.clear();
-    saveFile.plantMap.forEach((plant: [string, Plant]) => {
-        plants.set(plant[0], Plant.deepCopy(plant[1]));
-    });
+    copyDataFromFile(saveFile);
 
     notify("scene-changed");
     console.log(`Game loaded from save ${key}`);
+}
+
+function autosavePrompt() {
+    if (localStorage.getItem("autosave")) {
+        if (confirm("Would you like to continue where you left off?"))
+            loadSave("autosave");
+        else
+            localStorage.removeItem("autosave");
+    }
 }
 
 type EventName = "scene-changed";
@@ -264,6 +283,7 @@ canvas.addEventListener("scene-changed", () => {
     drawGrid();
     drawPlayer(playerCharacter);
     drawPlants();
+    createSave("autosave");
 })
 
 const undoButton = document.createElement("button");
@@ -287,6 +307,7 @@ document.body.appendChild(saveButton);
 const loadButton = document.createElement("button");
 loadButton.innerHTML = "Load";
 loadButton.addEventListener("click", () => {
+    listSaves();
     const key = prompt("Enter save name")!;
     loadSave(key);
 })
@@ -304,4 +325,6 @@ function createPlantButton(icon: string) {
 
 document.body.appendChild(createPlantButton("🌽"));
 document.body.appendChild(createPlantButton("🫘"));
+
+autosavePrompt();
 notify("scene-changed");
