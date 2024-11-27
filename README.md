@@ -4,7 +4,7 @@
 
 ## How we satisfied the requirements
 ## F0.a
-Each cell holds information on its relative position within the grid, as well as sun and water levels specific to that cell which are randomized on initialization. 
+11/24/2024 - Each cell holds information on its relative position within the grid, as well as sun and water levels specific to that cell which are randomized on initialization. 
 Functions are provided that enable access to cells based on column and row. 
 Player is now a simple object that keeps track of its position in a similar format to the grid cells. 
 Player movement is triggered through event listeners on the arrow keys which map to coordinate pairs that are added to the player's position. 
