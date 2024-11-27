@@ -1,6 +1,6 @@
 import { Grid } from "./models.ts";
 import { Player } from "./models.ts";
-import { Plant, CornPlant, BeanPlant } from "./models.ts";
+import { Plant } from "./models.ts";
 
 interface Command {
     execute(): void;
@@ -91,16 +91,31 @@ function createReapCommand(x: number, y: number): Command {
         execute() {
             plants.delete(`${x}${y}`);
             grid.sowCell(x, y);
-            checkWin(data.plant);
+            advanceScenario(data.plant);
             console.log(reapFull);
         },
         undo() {
             plants.set(`${x}${y}`, data.plant);
             grid.sowCell(x, y);
-            uncheckWin(data.plant);
+            revertScenario(data.plant);
             console.log(reapFull);
         }
     }
+}
+
+function advanceScenario(plant: Plant) {
+    if (plant.growthStage == 3)
+        reapFull++;
+}
+
+function revertScenario(plant: Plant) {
+    if (plant.growthStage == 3)
+        reapFull--;
+}
+
+function checkScenarioWin() {
+    if (reapFull >= 10)
+        return true;
 }
 
 function handleKeyboardInput(key: string) {
@@ -289,6 +304,12 @@ canvas.addEventListener("scene-changed", () => {
     drawPlayer(playerCharacter);
     drawPlants();
     createSave("autosave");
+
+    const winnerNode = document.getElementById("winner");
+    if (winnerNode)
+        winnerNode.remove();
+    if (checkScenarioWin())
+        document.body.appendChild(winText);
 })
 
 const undoButton = document.createElement("button");
@@ -330,26 +351,7 @@ function createPlantButton(icon: string) {
 
 const winText = document.createElement("h1");
 winText.innerHTML = "You win!"
-
-function checkWin(plant: Plant) {
-    let didPlant = false;
-    if (plant.growthStage == 3) {
-        reapFull++;
-        didPlant = true;
-    }
-    if (reapFull >= 20) {
-        document.body.append(winText);
-        didPlant = true;
-    }
-    return didPlant;
-}
-
-function uncheckWin(plant: Plant) {
-    const oldAmount = reapFull;
-    if (checkWin(plant) && oldAmount != reapFull) {
-        reapFull -= 2;
-    }
-}
+winText.id = "winner";
 
 document.body.appendChild(createPlantButton("🌽"));
 document.body.appendChild(createPlantButton("🫘"));
