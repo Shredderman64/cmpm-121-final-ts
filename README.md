@@ -1,5 +1,7 @@
 # Devlog Entry - 11/27/2024
-tiny
+## F0.g - You Win!
+
+Game now features a win condition, where upon harvesting 20 fully grown crops, a message appears confirming that the player won the game. The win condition also recognizes if the player hits undo, which unchecks the progression towards the win condition and resets the state unless the player has already won the game. This should satisfy the requirements for the specific play scenario for F0.g, and should hopefully be the last of the F0 and F1 requirements that we need to work on for this iteration. 
 
 # Devlog Entry - 11/26/2024
 
@@ -118,5 +120,3 @@ in regards to building and deploying software from scratch, especially since up 
 we've mainly been given the appropriate frameworks to begin with. We anticipate the hardest
 parts of this project to be time management and communicating clearly on what each of us is
 developing.
-
-this is a test

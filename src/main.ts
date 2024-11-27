@@ -26,6 +26,7 @@ const redoStack: Command[] = [];
 const plants = new Map<string, Plant>();
 let currentPlantType = "🌽";
 let currentDay = 0;
+let reapFull = 0;
 
 function createMoveCommand(player: Player, dx: number, dy: number): Command | null {
     const data = { before_dx: 0, before_dy: 0 };
@@ -92,10 +93,14 @@ function createReapCommand(x: number, y: number): Command {
         execute() {
             plants.delete(`${x}${y}`);
             grid.sowCell(x, y);
+            checkWin(data.plant);
+            console.log(reapFull);
         },
         undo() {
             plants.set(`${x}${y}`, data.plant);
             grid.sowCell(x, y);
+            uncheckWin(data.plant);
+            console.log(reapFull);
         }
     }
 }
@@ -300,6 +305,29 @@ function createPlantButton(icon: string) {
         console.log(currentPlantType);
     })
     return plantButton;
+}
+
+const winText = document.createElement("h1");
+winText.innerHTML = "You win!"
+
+function checkWin(plant: Plant) {
+    let didPlant = false;
+    if (plant.growthStage == 3) {
+        reapFull++;
+        didPlant = true;
+    }
+    if (reapFull >= 20) {
+        document.body.append(winText);
+        didPlant = true;
+    }
+    return didPlant;
+}
+
+function uncheckWin(plant: Plant) {
+    const oldAmount = reapFull;
+    if (checkWin(plant) && oldAmount != reapFull) {
+        reapFull -= 2;
+    }
 }
 
 document.body.appendChild(createPlantButton("🌽"));
