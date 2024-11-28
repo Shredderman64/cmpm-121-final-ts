@@ -92,13 +92,11 @@ function createReapCommand(x: number, y: number): Command {
             plants.delete(`${x}${y}`);
             grid.sowCell(x, y);
             advanceScenario(data.plant);
-            console.log(reapFull);
         },
         undo() {
             plants.set(`${x}${y}`, data.plant);
             grid.sowCell(x, y);
             revertScenario(data.plant);
-            console.log(reapFull);
         }
     }
 }
@@ -111,11 +109,6 @@ function advanceScenario(plant: Plant) {
 function revertScenario(plant: Plant) {
     if (plant.growthStage == 3)
         reapFull--;
-}
-
-function checkScenarioWin() {
-    if (reapFull >= 10)
-        return true;
 }
 
 function handleKeyboardInput(key: string) {
@@ -227,6 +220,11 @@ function autosavePrompt() {
         else
             localStorage.removeItem("autosave");
     }
+}
+
+function checkScenarioWin() {
+    if (reapFull >= 20)
+        return true;
 }
 
 type EventName = "scene-changed";
